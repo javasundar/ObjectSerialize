@@ -25,7 +25,6 @@ public class PackageUtilTest {
         testModel.setTestShort((short)12);
         testModel.setTestString("aaaaaa");
 
-
         testModel.getIntegerList().add(1);
         testModel.getIntegerList().add(2);
 
