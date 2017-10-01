@@ -19,8 +19,11 @@ testModel2.setValue(100);
 testModel.getTestModel2List().add(testModel2);
 testModel.getTestModel2List().add(testModel2);
 
+
+// 二进制数据结果
 byte[] resultbytes = PackageUtil.object2Byte(testModel);
 
+// 二进制数据反序列化成对象
 TestModel serializeObject = PackageUtil.byte2Object(TestModel.class, new BinaryBuffer(resultbytes));
 Assert.assertEquals(testModel.getTestChar(), serializeObject.getTestChar());
 Assert.assertEquals(testModel.getTestInteger(), serializeObject.getTestInteger());
