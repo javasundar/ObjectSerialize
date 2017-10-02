@@ -1,32 +1,1 @@
-只需要简单的代码就可以把对象转化成二进制数据，并把相应的二进制数据转化成对象
-
-TestModel testModel = new TestModel();
-testModel.setNoSerialize("111");
-testModel.setTestChar('1');
-testModel.setTestInteger(100);
-testModel.setTestLong(100l);
-testModel.setTestShort((short)12);
-testModel.setTestString("aaaaaa");
-
-testModel.getIntegerList().add(1);
-testModel.getIntegerList().add(2);
-
-testModel.getStringList().add("123");
-testModel.getStringList().add("456");
-
-TestModel2 testModel2 = new TestModel2();
-testModel2.setValue(100);
-testModel.getTestModel2List().add(testModel2);
-testModel.getTestModel2List().add(testModel2);
-
-
-// 二进制数据结果
-byte[] resultbytes = PackageUtil.object2Byte(testModel);
-
-// 二进制数据反序列化成对象
-TestModel serializeObject = PackageUtil.byte2Object(TestModel.class, new BinaryBuffer(resultbytes));
-Assert.assertEquals(testModel.getTestChar(), serializeObject.getTestChar());
-Assert.assertEquals(testModel.getTestInteger(), serializeObject.getTestInteger());
-Assert.assertEquals(testModel.getTestLong(), serializeObject.getTestLong());
-Assert.assertEquals(testModel.getTestString(), serializeObject.getTestString());
-Assert.assertEquals(testModel.getTestShort(), serializeObject.getTestShort());
+## 工具说明Socket,蓝牙等二进制数据处理工具，可以把Object里的所有字段值转化成二进制值，然后拼起来，形成一个二进制数据包，并且可以把二进制数据流填充到实体对象进，形成了序列化与反序列化的工具集## 类型支持1. 支持byte, char(Charactor), short(Short), int(Integer), long(Long)等类型,上面的基础数据类型转化成二进制是直接表示的二进制数据，例如int占的是4位即；int value ＝ 1, 表示成二进制就是byte[] results = {0, 0, 0, 1}2. 支持String类型，String类型转化成二进制数据后表示为，字符串的二进制长度 + 字符串的二进制数据，例如String values ＝ "ab"; 转化成二进制数据包为：byte[] result = {0, 2, 97, 98}; 前面两位表示字符串长度为2,内容为97, 98;3. 支持自定义对象类型，因为自定义数据类型比较特殊，所以可以分为两种形式	1. 对象中每个字段都保证不为空的情况下，则不需要1个字节来标识自定义对象是否为空; 	2. 如果自定义对象有可能为空，即用1个字节表示对象是否可能为空,使用这种方式是可以支省流量，不需要为每个对象支充冲内容，只需要按需填充即好	 下面会用例字来说明这两种情况，并提供接口来设置到底是用哪种方式处理4. 支持List<?>类型，List中的泛型支持上面1, 2, 3所有的类型## 使用例子```// 被序列化对象TestModel testModel = new TestModel();// 基本数据类型testModel.setNoSerialize("111");testModel.setTestChar('1');testModel.setTestInteger(100);testModel.setTestLong(100l);testModel.setTestShort((short)12);testModel.setTestString("aaaaaxa");// 对象嵌套,即二进制数据TestModel2 testModel3 = new TestModel2();testModel3.setValue(100);testModel.setTestModel2(testModel3);// 整型列表testModel.getIntegerList().add(1);testModel.getIntegerList().add(2);// 字符串列表testModel.getStringList().add("123");testModel.getStringList().add("456");// 自定义对象列表TestModel2 testModel2 = new TestModel2();testModel2.setValue(100);testModel.getTestModel2List().add(testModel2);testModel.getTestModel2List().add(testModel2);// 转换结果byte[] resultbytes = PackageUtil.object2Byte(testModel);// 把二进制数据序列化成对象的强果TestModel serializeObject = PackageUtil.byte2Object(TestModel.class, new BinaryBuffer(resultbytes));Assert.assertEquals(testModel.getTestChar(), serializeObject.getTestChar());Assert.assertEquals(testModel.getTestInteger(), serializeObject.getTestInteger());Assert.assertEquals(testModel.getTestLong(), serializeObject.getTestLong());Assert.assertEquals(testModel.getTestString(), serializeObject.getTestString());Assert.assertEquals(testModel.getTestShort(), serializeObject.getTestShort());/** * 测试用例 */public class TestModel {    // 嵌套对象    @FieldInfo(order = 1)    private TestModel2 testModel2 = new TestModel2();    @FieldInfo(order = 10)    private String testString;    @FieldInfo(order = 20)    private short testShort;    @FieldInfo(order = 30)    private char testChar;    @FieldInfo(order = 50)    private long testLong;	// 所有没有被标识的字段都不会被序列化    public String noSerialize;    @FieldInfo(order = 71)    private List<Integer> integerList = new ArrayList<>();    @FieldInfo(order = 81)    private List<String> stringList = new ArrayList<>();    @FieldInfo(order = 91)    private List<Long> longArrayList = new ArrayList<>();    @FieldInfo(order = 101)    private List<TestModel2> testModel2List = new ArrayList<>();    @FieldInfo(order = 101)    private int testInteger;	... 省略get和set方法}/** * 嵌套对象 */public class TestModel2 {    @FieldInfo(order = 1)    private int value;    ... 省略get和set方法}        ```以下是对象转化成二进制的结果载图，因为我们没有开启是否支持序列化对象为空，请注意注意第三位和第四位是没有标识TestModel2是否为空的，下面会给出方法让用户自己开启支持对象为空的情况![MacDown Screenshot](http://d.pr/i/10UGP+)以下是二进制数据序列化成对象后的结果截图![MacDown Screenshot](http://d.pr/i/10UGP+)下面是开启支持对象为空的情况，建议使用者只使用一种，因为在网络数据传输的时候，不可能有动态去配置的，除非用户自己去制定传输的协议```  /**     * 开启对支持空对象的支持     */    public static void onOpenSupportNullObject() {        ByteUtil.LENGTH_OF_BYTE = 1;        // 0表示对象序列化的对象为空        ByteUtil.NULL_BYTE = new byte[]{0};        // 1表示对象不为空        ByteUtil.NOT_NULL_BYTE = new byte[]{1};    }    /**     * 关闭对支持空对象的支持     */    public static void onCloseSupportNullObject() {        ByteUtil.LENGTH_OF_BYTE = 0;        // 0表示对象序列化的对象为空        ByteUtil.NULL_BYTE = new byte[]{};        // 1表示对象不为空        ByteUtil.NOT_NULL_BYTE = new byte[]{};    }        ```以下给出开启这支持对象为空时的二进制结果截图![MacDown Screenshot](http://d.pr/i/10UGP+)以下是二进制数据序列化成对象后的结果截图![MacDown Screenshot](http://d.pr/i/10UGP+)

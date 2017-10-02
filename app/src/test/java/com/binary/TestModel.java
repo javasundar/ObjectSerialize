@@ -10,7 +10,7 @@ import java.util.List;
  */
 public class TestModel {
 
-    @FieldInfo(order = 1)
+    @FieldInfo(order = 101)
     private int testInteger;
 
     @FieldInfo(order = 10)
@@ -38,6 +38,9 @@ public class TestModel {
 
     @FieldInfo(order = 101)
     private List<TestModel2> testModel2List = new ArrayList<>();
+
+    @FieldInfo(order = 1)
+    private TestModel2 testModel2 = new TestModel2();
 
     public int getTestInteger() {
         return testInteger;
@@ -117,5 +120,13 @@ public class TestModel {
 
     public void setTestModel2List(List<TestModel2> testModel2List) {
         this.testModel2List = testModel2List;
+    }
+
+    public TestModel2 getTestModel2() {
+        return testModel2;
+    }
+
+    public void setTestModel2(TestModel2 testModel2) {
+        this.testModel2 = testModel2;
     }
 }

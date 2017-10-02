@@ -53,7 +53,7 @@ public class ByteUtil {
      * {@link ByteUtil#NULL_BYTE} = new byte[]{0}
      * {@link ByteUtil#NOT_NULL_BYTE} = new byte[]{1}
      */
-    public static final int LENGTH_OF_BYTE = 0;
+    public static int LENGTH_OF_BYTE = 0;
     public static byte[] NULL_BYTE = new byte[]{};
     public static byte[] NOT_NULL_BYTE = new byte[]{};
 
